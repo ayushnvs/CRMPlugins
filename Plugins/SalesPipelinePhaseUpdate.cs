@@ -24,6 +24,7 @@ namespace Plugins
             {
                 // Obtain the target entity from the input parameters.  
                 Entity pipeline = (Entity)context.InputParameters["Target"];
+                Entity pipelineImage = (Entity)context.PreEntityImages["pipelineImage"];
 
                 // Obtain the IOrganizationService instance which you will need for  
                 // web service calls.  
@@ -36,17 +37,17 @@ namespace Plugins
                     // Plug-in business logic goes here
                     // Contact Section
                     String firstName = String.Empty;
-                    if (pipeline.Attributes.Contains("pra_firstname"))
+                    if (pipelineImage.Attributes.Contains("pra_firstname"))
                     {
-                        firstName = pipeline.Attributes["pra_firstname"].ToString();
+                        firstName = pipelineImage.Attributes["pra_firstname"].ToString();
                     }
-                    String lastName = pipeline.Attributes["pra_lastname"].ToString();
+                    String lastName = pipelineImage.Attributes["pra_lastname"].ToString();
                     String phoneNumber = String.Empty;
-                    if (pipeline.Attributes.Contains("pra_phonenumber"))
+                    if (pipelineImage.Attributes.Contains("pra_phonenumber"))
                     {
-                        phoneNumber = pipeline.Attributes["pra_phonenumber"].ToString();
+                        phoneNumber = pipelineImage.Attributes["pra_phonenumber"].ToString();
                     }
-                    String email = pipeline.Attributes["pra_email"].ToString();
+                    String email = pipelineImage.Attributes["pra_email"].ToString();
 
                     QueryExpression contactQuery = new QueryExpression("contact");
                     contactQuery.ColumnSet = new ColumnSet(new String[] { "contactid", "emailaddress1" });
@@ -70,19 +71,20 @@ namespace Plugins
                         if (phoneNumber != null) { contactRecord.Attributes.Add("mobilephone", phoneNumber); }
 
                         Guid guid = service.Create(contactRecord);
+                        pipeline.Attributes.Add("pra_existingcontact", new EntityReference("contact", guid));
                     }
 
                     // Account Section
-                    String companyName = pipeline.Attributes["pra_companyname"].ToString();
+                    String companyName = pipelineImage.Attributes["pra_companyname"].ToString();
                     String businessPhoneNumber = String.Empty;
-                    if (pipeline.Attributes.Contains("pra_businessphonenumber"))
+                    if (pipelineImage.Attributes.Contains("pra_businessphonenumber"))
                     {
-                        businessPhoneNumber = pipeline.Attributes["pra_phonenumber"].ToString();
+                        businessPhoneNumber = pipelineImage.Attributes["pra_phonenumber"].ToString();
                     }
 
-                    QueryExpression accountQuery = new QueryExpression("contact");
-                    accountQuery.ColumnSet = new ColumnSet(new String[] { "accountid", "emailaddress1" });
-                    accountQuery.Criteria.AddCondition("emailaddress1", ConditionOperator.Equal, email);
+                    QueryExpression accountQuery = new QueryExpression("account");
+                    accountQuery.ColumnSet = new ColumnSet(new String[] { "accountid", "name" });
+                    accountQuery.Criteria.AddCondition("name", ConditionOperator.Equal, companyName);
 
                     EntityCollection accountCollection = service.RetrieveMultiple(accountQuery);
 
@@ -100,6 +102,7 @@ namespace Plugins
                         if (businessPhoneNumber != null) { accountRecord.Attributes.Add("telephone1", businessPhoneNumber); }
 
                         Guid guid = service.Create(accountRecord);
+                        pipeline.Attributes.Add("pra_existingaccount", new EntityReference("account", guid));
                     }
 
                 }
