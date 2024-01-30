@@ -89,7 +89,7 @@ namespace Plugins
                 }
             }
         }
-        public void handleAccountSection(IServiceProvider serviceProvider)
+        void handleAccountSection(IServiceProvider serviceProvider)
         {
             // Obtain the tracing service
             ITracingService tracingService =
@@ -169,7 +169,7 @@ namespace Plugins
             // Contact Section
             handleContactSection(serviceProvider);
             // Contact Section
-            handleContactSection(serviceProvider);
+            handleAccountSection(serviceProvider);
         }
     }
 }
