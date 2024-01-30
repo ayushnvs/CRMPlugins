@@ -2,13 +2,12 @@
 using System;
 using Microsoft.Xrm.Sdk.Query;
 using System.ServiceModel;
-using System.Collections.ObjectModel;
 
 namespace Plugins
 {
     public class SalesPipelinePhaseUpdate : IPlugin
     {
-        public void Execute(IServiceProvider serviceProvider)
+        void handleContactSection(IServiceProvider serviceProvider)
         {
             // Obtain the tracing service
             ITracingService tracingService =
@@ -37,7 +36,6 @@ namespace Plugins
                     // Plug-in business logic goes here
                     if (((OptionSetValue)pipeline.Attributes["pra_pipelinephase"]).Value == 894870001)
                     {
-                        // Contact Section
                         String firstName = String.Empty;
                         if (pipelineImage.Attributes.Contains("pra_firstname"))
                         {
@@ -75,7 +73,51 @@ namespace Plugins
                             Guid guid = service.Create(contactRecord);
                             pipeline.Attributes.Add("pra_existingcontact", new EntityReference("contact", guid));
                         }
+                    }
 
+                }
+
+                catch (FaultException<OrganizationServiceFault> ex)
+                {
+                    throw new InvalidPluginExecutionException("An error occurred in FollowUpPlugin.", ex);
+                }
+
+                catch (Exception ex)
+                {
+                    tracingService.Trace("FollowUpPlugin: {0}", ex.ToString());
+                    throw;
+                }
+            }
+        }
+        public void handleAccountSection(IServiceProvider serviceProvider)
+        {
+            // Obtain the tracing service
+            ITracingService tracingService =
+            (ITracingService)serviceProvider.GetService(typeof(ITracingService));
+
+            // Obtain the execution context from the service provider.  
+            IPluginExecutionContext context = (IPluginExecutionContext)
+                serviceProvider.GetService(typeof(IPluginExecutionContext));
+
+            // The InputParameters collection contains all the data passed in the message request.  
+            if (context.InputParameters.Contains("Target") &&
+                context.InputParameters["Target"] is Entity)
+            {
+                // Obtain the target entity from the input parameters.  
+                Entity pipeline = (Entity)context.InputParameters["Target"];
+                Entity pipelineImage = (Entity)context.PreEntityImages["pipelineImage"];
+
+                // Obtain the IOrganizationService instance which you will need for  
+                // web service calls.  
+                IOrganizationServiceFactory serviceFactory =
+                    (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
+                IOrganizationService service = serviceFactory.CreateOrganizationService(context.UserId);
+
+                try
+                {
+                    // Plug-in business logic goes here
+                    if (((OptionSetValue)pipeline.Attributes["pra_pipelinephase"]).Value == 894870001)
+                    {
                         // Account Section
                         String companyName = pipelineImage.Attributes["pra_companyname"].ToString();
                         String businessPhoneNumber = String.Empty;
@@ -121,6 +163,13 @@ namespace Plugins
                     throw;
                 }
             }
+        }
+        public void Execute(IServiceProvider serviceProvider)
+        {
+            // Contact Section
+            handleContactSection(serviceProvider);
+            // Contact Section
+            handleContactSection(serviceProvider);
         }
     }
 }
