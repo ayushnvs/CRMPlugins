@@ -89,8 +89,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HandleFullName.cs" />
-    <Compile Include="SalesPipelinePhaseUpdate.cs" />
+    <Compile Include="Helper\ServiceHelper.cs" />
+    <Compile Include="SalesPipeline\HandleFullName.cs" />
+    <Compile Include="SalesPipeline\SalesPipelinePhaseUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
