@@ -6,19 +6,25 @@ var Sdk = window.Sdk || {};
             let formContext = executionContext.getFormContext();
             let customerArray = formContext.getAttribute("parentcustomerid").getValue();
 
-            if (customerArray.length && customerArray[0]) {
+            if (customerArray && customerArray.length && customerArray[0]) {
                 var customerGuid = customerArray[0].id;
+                var customerType = customerArray[0].entityType
+
+                // console.log(customerGuid, customerType);
+
+                Xrm.WebApi.retrieveRecord(customerType, customerGuid, "?$select=telephone1,emailaddress1").then(
+                    function success(result) {
+                        // console.log("Retrieved values: Phone: " + result.telephone1 + ", Email: " + result.emailaddress1);
+                        
+                        formContext.getAttribute("telephone1").setValue(result.telephone1)
+                        formContext.getAttribute("emailaddress1").setValue(result.emailaddress1)
+                    },
+                    function (error) {
+                        console.log(error.message);
+                        // handle error conditions
+                    }
+                );
             }
 
-            Xrm.WebApi.retrieveRecord("account", customerGuid, "?$select=name,revenue").then(
-                function success(result) {
-                    console.log("Retrieved values: Name: " + result.name + ", Revenue: " + result.revenue);
-                    // perform operations on record retrieval
-                },
-                function (error) {
-                    console.log(error.message);
-                    // handle error conditions
-                }
-            );
         }
     }).call(Sdk)
